@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { type Artifact, type Exhibit } from "@shared/schema";
-import { mockArtifacts } from "@/lib/mockData";
+import { useArtifacts } from "@/lib/useArtifacts";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import FilterBar from "@/components/FilterBar";
@@ -17,19 +17,24 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
 
+  // fetch artifacts from server (hook handles fallback to mock data)
+  const { data: artifacts, isLoading, error } = useArtifacts();
+
+  const items = artifacts ?? [];
+
   const filteredArtifacts = useMemo(() => {
-    if (activeExhibit === "All") return mockArtifacts;
-    return mockArtifacts.filter((a) => a.exhibit === activeExhibit);
-  }, [activeExhibit]);
+    if (activeExhibit === "All") return items;
+    return items.filter((a) => a.exhibit === activeExhibit);
+  }, [activeExhibit, items]);
 
   const exhibitCounts = useMemo(() => {
     return {
-      All: mockArtifacts.length,
-      Egypt: mockArtifacts.filter((a) => a.exhibit === "Egypt").length,
-      France: mockArtifacts.filter((a) => a.exhibit === "France").length,
-      Italy: mockArtifacts.filter((a) => a.exhibit === "Italy").length,
+      All: items.length,
+      Egypt: items.filter((a) => a.exhibit === "Egypt").length,
+      France: items.filter((a) => a.exhibit === "France").length,
+      Italy: items.filter((a) => a.exhibit === "Italy").length,
     };
-  }, []);
+  }, [items]);
 
   const handleAddToHeist = (artifact: Artifact) => {
     if (heistPlan.find((a) => a.id === artifact.id)) {
@@ -101,11 +106,17 @@ export default function Home() {
             </span>
           </div>
 
-          <ArtifactGrid
-            artifacts={filteredArtifacts}
-            onAddToHeist={handleAddToHeist}
-            onViewDetails={handleViewDetails}
-          />
+          {isLoading ? (
+            <div>Loading artifacts…</div>
+          ) : error ? (
+            <div className="text-destructive">Could not load artifacts</div>
+          ) : (
+            <ArtifactGrid
+              artifacts={filteredArtifacts}
+              onAddToHeist={handleAddToHeist}
+              onViewDetails={handleViewDetails}
+            />
+          )}
         </div>
       </main>
 

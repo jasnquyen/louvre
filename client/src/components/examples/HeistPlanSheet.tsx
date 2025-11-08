@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import HeistPlanSheet from '../HeistPlanSheet';
-import { mockArtifacts } from '@/lib/mockData';
+import { useArtifacts } from '@/lib/useArtifacts';
 import { Button } from '@/components/ui/button';
 
 export default function HeistPlanSheetExample() {
   const [open, setOpen] = useState(false);
-  const [artifacts, setArtifacts] = useState(mockArtifacts.slice(0, 3));
+  const { data: fetched, isLoading } = useArtifacts();
+  const initial = isLoading ? [] : (fetched ?? []).slice(0, 3);
+  const [artifacts, setArtifacts] = useState(initial);
 
   return (
     <div className="p-8 bg-background">
